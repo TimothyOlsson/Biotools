@@ -1,0 +1,28 @@
+<html>
+	<head>
+		<title>STRAFF BERÄKNING</title>
+	</head>
+	
+	<body>
+
+	<form action="/poststraff" method="post">
+		<input type="text" name="straff"></input>
+		<input type="submit" value="Post straff"></input>
+	</form>
+		
+	<form action="/unregister" method="get">
+		<button type="submit" value="unregister"  >Unregister latest straff</button>
+	</form>
+	
+	<u1>{{ unreg_string }}</u1>
+	
+	<ul>
+      {% for straff in straff_list %}
+      <li>{{ straff }}</li>
+      {% endfor %}
+    </ul>
+	
+	
+	</body>
+
+</html>

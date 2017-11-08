@@ -1,0 +1,33 @@
+<html>
+{% extends '/base.html' %}
+{% block content %}	
+	
+	<h2>MSA</h2>
+	
+	<form method="POST">
+		<textarea name="fasta_seq" id="fasta_seq" rows="25" cols="80">Fasta sequence</textarea>
+		<input type=submit value="Submit">
+	</form>
+	
+	<h3>Upload new File</h3>
+    <form method=post enctype=multipart/form-data>
+      <p><input type=file name=file></p>
+         <input type=submit value=Upload>
+    </form>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+      {% for message in messages %}
+        <li class="{{ message }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% endwith %}
+  
+	
+
+{% endblock %}
+
+  
+</html>

@@ -4,16 +4,14 @@
 	
 	<h2>MSA</h2>
 	
-	<form method="POST">
+	<form method="POST" id=submit_form enctype=multipart/form-data action="MSA/post">
 		<textarea name="fasta_seq" id="fasta_seq" rows="25" cols="80">Fasta sequence</textarea>
 		<input type=submit value="Submit">
+		
+		<h4>Upload File</h4>
+		<p><input type=file name=file></p>
 	</form>
-	
-	<h3>Upload new File</h3>
-    <form method=post enctype=multipart/form-data>
-      <p><input type=file name=file></p>
-         <input type=submit value=Upload>
-    </form>
+
 
   {% with messages = get_flashed_messages() %}
   {% if messages %}
@@ -25,7 +23,13 @@
   {% endif %}
   {% endwith %}
   
-	
+  
+  {% if processed %}
+  <form method="POST" id=done_form action="MSA/get">
+	<input type=submit name=view value=View id=view>
+	<input type=submit name=download value=Download id=download>
+  </form>
+  {% endif %}
 
 {% endblock %}
 

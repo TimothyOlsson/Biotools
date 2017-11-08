@@ -1,6 +1,3 @@
-##
-#Imports
-##
 
 import os #for basic folder handling
 from flask import session #Sessions
@@ -12,10 +9,6 @@ from werkzeug.utils import secure_filename #Uploading
 import io #String sending
 import logging #Debugging
 import sys
-
-##
-#Settings
-##
 
 #Sets the website as "app"
 app = Flask(__name__)
@@ -37,17 +30,13 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=logging.DEBUG)
 """
 
-##
-#Pages
-##
-
 #Root page
 @app.route('/')
 def index():
     author = "Biohacker"
-    options_dict = {'Alignment': ['MSA', 'Alignment', 'cats'],
-                   'DNA sequencing': ['Random DNA','DNA translation']}
-    
+    options_dict = {'Alignment': ['MSA', 'Pairwise', 'cats'],
+                   'DNA sequencing': ['Random_DNA','Translate_DNA']}
+
     return render_template('index.html',
                            author=author,
                            alignment_list=options_dict['Alignment'],
@@ -61,7 +50,7 @@ def about():
 #MSA page
 @app.route('/MSA')
 def MSA():
-    if session['processed_MSA']:
+    if session.get('processed_MSA') != None:
         flag = True
     else:
         flag = False
@@ -79,8 +68,8 @@ def MSA_get_fasta():
     #Prioritize files. Check if file exist
     elif ('file' in request.files) and (request.files['file'].filename != ''):
 
-        print('file')
         file = request.files['file']  #Process file
+        session['filename'] = file.filename #add filename to session
 
         #Check if the file extension is allowed
         if not allowed_file(file.filename):
@@ -110,24 +99,41 @@ def MSA_send_fasta():
     the app will crash since it tries to find it in the if statement
     """
 
-    if request.form.get('download') != None:
-        bIO = io.BytesIO()
-        bIO.write(session['processed_MSA'].encode('utf-8'))
-        bIO.seek(0)
-        return send_file(bIO,
-                        attachment_filename="testing.txt",
-                        as_attachment=True)
+    if request.form.get('reset') != None:
+        session.clear()
+        return redirect(url_for('MSA'))
 
+    elif request.form.get('download') != None:
+        bIO = io.BytesIO()
+        bIO.write(session['processed_MSA'])
+        bIO.seek(0)
+
+        if session.get('filename') != None:
+            filename = 'aligned_' + session['filename']
+        else:
+            filename = 'aligned_sequences.fasta'
+
+        return send_file(bIO,
+                        attachment_filename=filename,
+                        as_attachment=True)
     elif request.form.get('view') != None:
         return session['processed_MSA']
 
+#Pairwise page
+@app.route('/Pairwise')
+def Pairwise():
+    return 'Pairwise'
 
+#Random DNA page
+@app.route('/Random_DNA')
+def Random_DNA():
+    return 'Random'
 
+#DNA translation page
+@app.route('/Translate_DNA')
+def Translate_DNA():
+    return 'Translate'
 
-#Alignment page
-@app.route('/Alignment')
-def Alignment():
-    return 'Alignment'
 
 #Cat page
 @app.route('/cats', methods = ['GET'])
@@ -139,6 +145,12 @@ app.secret_key = r'\x0e\xed]\xd8\x9ae\xf2\x90\xd6\xac\x03\xf4\xddM\xcc\xbb\x1f\x
 
 if __name__ == "__main__":
     app.run(threaded=True, debug=True)
+
+
+
+
+
+
 
 """https://stackoverflow.com/questions/14672753/handling-multiple-requests-in-flask"""
 

@@ -1,3 +1,7 @@
+##
+#Imports
+##
+
 import os #for basic folder handling
 from flask import session #Sessions
 from flask import request, redirect, url_for #Redirects
@@ -5,6 +9,13 @@ from flask import send_from_directory, send_file #Downloading and uploading
 from flask import flash #Alerts and flashing
 from flask import Flask, render_template #Basic rendering
 from werkzeug.utils import secure_filename #Uploading
+import io #String sending
+import logging #Debugging
+import sys
+
+##
+#Settings
+##
 
 #Sets the website as "app"
 app = Flask(__name__)
@@ -18,6 +29,17 @@ def allowed_file(filename):
 UPLOAD_FOLDER = './uploaded_files'
 ALLOWED_EXTENSIONS = set(['txt', 'fasta', 'fa', 'sthlm'])
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+"""
+#Logging
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+                    filename='debug.log',
+                    level=logging.DEBUG)
+"""
+
+##
+#Pages
+##
 
 #Root page
 @app.route('/')
@@ -39,42 +61,68 @@ def about():
 #MSA page
 @app.route('/MSA')
 def MSA():
-    return render_template('/Alignment/MSA.html')
+    if session['processed_MSA']:
+        flag = True
+    else:
+        flag = False
 
-#MSA, text input
-@app.route('/MSA', methods=['POST'])
-def get_fasta():
-    # check if no file and text field is empty. Return and flash an error
-    if ('file' not in request.files) and (request.form['fasta_seq'] == ''):
+    return render_template('/Alignment/MSA.html', processed=flag)
+
+#MSA, post the fasta
+@app.route('/MSA/post', methods=['POST'])
+def MSA_get_fasta():
+
+    if request.form['fasta_seq'] == '':
         flash('No file or input detected')
-        return redirect(request.url)
+        return redirect(url_for('MSA'))
 
     #Prioritize files. Check if file exist
-    elif ('file' in request.files):
+    elif ('file' in request.files) and (request.files['file'].filename != ''):
 
-        #Check if file has no name
-        if file.filename == '':
-            flash('No filename')
-            return redirect(request.url)
-        
-        #Process file
-        file = request.files['file']
+        print('file')
+        file = request.files['file']  #Process file
 
         #Check if the file extension is allowed
-        if file not allowed_file(file.filename):
+        if not allowed_file(file.filename):
             flash('File type not supported')
-            return redirect(request.url)
+            return redirect(url_for('MSA'))
 
-        #If everything is ok
-        with open(file,'r') as file_read:
-            file_contents = file_read.readlines()
-        return(file_contents)
+        file_contents = file.read()  #If everything is ok, read
+        #Remove all comments etc
+        processed_MSA = file_contents
 
-    #If nothing else, use the text field
-    else:    
+    #Text field
+    else:
         fasta_seq = request.form['fasta_seq']
-        processed_fasta = fasta_seq.upper()
-        return processed_fasta
+        processed_MSA = fasta_seq.upper()
+
+
+    session['processed_MSA'] = processed_MSA
+
+    return redirect(url_for('MSA'))
+
+#MSA, send the fasta
+@app.route('/MSA/get', methods=['POST'])
+def MSA_send_fasta():
+
+    """
+    Problem fixed. If you use request.form['view'] first while clicking on download,
+    the app will crash since it tries to find it in the if statement
+    """
+
+    if request.form.get('download') != None:
+        bIO = io.BytesIO()
+        bIO.write(session['processed_MSA'].encode('utf-8'))
+        bIO.seek(0)
+        return send_file(bIO,
+                        attachment_filename="testing.txt",
+                        as_attachment=True)
+
+    elif request.form.get('view') != None:
+        return session['processed_MSA']
+
+
+
 
 #Alignment page
 @app.route('/Alignment')
@@ -90,18 +138,14 @@ def cats():
 app.secret_key = r'\x0e\xed]\xd8\x9ae\xf2\x90\xd6\xac\x03\xf4\xddM\xcc\xbb\x1f\xd2a,Z\x0eeW'
 
 if __name__ == "__main__":
-    app.run()
+    app.run(threaded=True, debug=True)
 
-
-
-
-
-
+"""https://stackoverflow.com/questions/14672753/handling-multiple-requests-in-flask"""
 
 ## DUMP
 
     #return send_file('link.txt', as_attachment=True, mimetype='txt')
-    """
+"""
     if request.method == 'POST':
     # check if the post request has the file part
         if 'file' not in request.files:

@@ -70,6 +70,9 @@
 </head>
 <body>
 
+
+<!--Fucking finally....-->
+
 <div class="navbar">
   <div class="dropdown">
     <button class="dropbtn">Alignment 
@@ -77,10 +80,13 @@
     </button>
     <div class="dropdown-content">
 	{% for option in alignment_list %}
-      <a href="/{{ option }}">{{ option }}</a>
+      <a href="/{{ option }}">{{ option|replace("_"," ")  }}</a>
 	{% endfor %}
     </div>
   </div>
+  
+  
+  
   
   
   <div class="dropdown">
@@ -89,13 +95,23 @@
     </button>
     <div class="dropdown-content">
 	{% for option in dnaseq_list %}
-      <a href="/{{ option }}">{{ option }}</a>
+      <a href="/{{ option }}">{{ option|replace("_"," ")  }}</a>
 	{% endfor %}
     </div>
   </div> 
+  
+  
+  
+  
+  
+  
+  
   <a href="/about">About</a>
   <a href="#news">News</a>
 </div>
+
+
+
 
 <h3>Test</h3>
 <p>More tests</p>

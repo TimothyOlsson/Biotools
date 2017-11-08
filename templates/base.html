@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
   <head>
-    <title>{{ author }}.se</title>
+    <title>Biohacker.se</title>
   </head>
   
   <center><h1><font face="verdana">Biohacker</font></h1></center>
@@ -68,37 +68,21 @@
 }
 </style>
 </head>
+
+
 <body>
 
-<div class="navbar">
-  <div class="dropdown">
-    <button class="dropbtn">Alignment 
-      <i class="fa fa-caret-down"></i>
-    </button>
-    <div class="dropdown-content">
-	{% for option in alignment_list %}
-      <a href="/{{ option }}">{{ option }}</a>
-	{% endfor %}
-    </div>
-  </div>
-  
-  
-  <div class="dropdown">
-    <button class="dropbtn">DNA sequencing
-      <i class="fa fa-caret-down"></i>
-    </button>
-    <div class="dropdown-content">
-	{% for option in dnaseq_list %}
-      <a href="/{{ option }}">{{ option }}</a>
-	{% endfor %}
-    </div>
-  </div> 
-  <a href="/about">About</a>
-  <a href="#news">News</a>
-</div>
 
-<h3>Test</h3>
-<p>More tests</p>
+<body>
+    <div class="content container">
+        <div class="row">
+            <div class="col-md-8">
+            {% block content %}
+            {% endblock %}
+            </div>
+        </div>
+    </div>
+</body>
 
 </body>
 

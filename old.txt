@@ -1,0 +1,31 @@
+#Straff
+@app.route('/form', methods = ['GET'])
+def form():
+    return render_template('form.html', straff_list=straff_list)
+
+#Uses the button
+@app.route('/poststraff', methods = ['POST'])
+def post():
+    straff = request.form['straff']
+    straff_list.append(straff)
+    session['straff'] = straff
+    print(straff_list)
+    return redirect('/form')
+
+#A way to unregister straff
+@app.route('/unregister')
+def unregister():
+
+    unreg_string = ''
+    # Make sure they've already registered a straff address
+    if 'straff' not in session:
+        unreg_string = "You haven't submitted a straff!"
+    # Make sure it was already in our address list
+    elif session['straff'] not in straff_list:
+        unreg_string = "That straff isn't on our list"
+    else:
+        straff = session['straff']
+        straff_list.remove(straff)
+        del session['straff'] # Make sure to remove it from the session
+        unreg_string = 'Removed ' + straff + ' from the list!'
+    return render_template('form.html', unreg_string=unreg_string, straff_list=straff_list)

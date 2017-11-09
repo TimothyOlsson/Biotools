@@ -19,7 +19,6 @@ class Needleman_Wunsch():
       return self.mismatch
       
   def check_pointer(self,list_of_values):
-    print(list_of_values)
     indices = [i for i, x in enumerate(list_of_values) if x == max(list_of_values)]
     pointer=''
     for i in indices:

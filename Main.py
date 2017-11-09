@@ -33,7 +33,7 @@ logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
 #Root page
 @app.route('/')
 def index():
-    author = "Biohacker"
+    author = "Biotools"
     options_dict = {'Alignment': ['MSA', 'Pairwise', 'cats'],
                    'DNA sequencing': ['Random_DNA','Translate_DNA']}
 

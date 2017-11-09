@@ -1,8 +1,8 @@
 import numpy as np
-from multiprocessing import Process
 import time
 import progressbar
-
+import sys
+import multiprocessing
 
 class Needleman_Wunsch():
   
@@ -36,7 +36,6 @@ class Needleman_Wunsch():
     for i in range(0,len(seq1)):
       if seq1[i] == '-' or seq2[i] == '-':
         score += self.gap
-        
         amount_of_gaps += 1          
       elif seq1[i] != seq2[i]:
         score += self.mismatch
@@ -124,11 +123,11 @@ class Needleman_Wunsch():
     return score_matrix,pointer_matrix
 
   def run(self, seq1, seq2):
+
     score_matrix, pointer_matrix = self.calc_matrix(seq1,seq2)
     aligned_seq1, aligned_seq2 = self.traceback(seq1,seq2,score_matrix,pointer_matrix)
     score, match_percentage, amount_of_matches, amount_of_mismatches, amount_of_gaps = self.calc_score(aligned_seq1, aligned_seq2)
     alignment_indication = self.alignment_indication(aligned_seq1, aligned_seq2)
-
 
     list_of_all_things = [score_matrix,
                           pointer_matrix,
@@ -144,10 +143,10 @@ class Needleman_Wunsch():
     for i in list_of_all_things:
       print(i)
 
+    return list_of_all_things
     
     
 if __name__=='__main__':
-  pass
   """
   p1 = Process(target=func1)
   p1.start()

@@ -1,0 +1,68 @@
+import numpy as np
+from multiprocessing import Process
+import time
+import progressbar
+
+
+class Needleman_Wunsch():
+  
+  def __init__(self, match=1, mismatch=-1, gap=-1):
+    self.match = match
+    self.mismatch = mismatch
+    self.gap = gap
+    self.point_list = ['D','H','V']
+
+  def check_match(self,n1,n2):
+    if n1==n2:
+      return self.match
+    else:
+      return self.mismatch
+      
+  def check_pointer(self,list_of_values):
+    print(list_of_values)
+    indices = [i for i, x in enumerate(list_of_values) if x == max(list_of_values)]
+    print(indices)
+    pointer=''
+    for i in indices:
+      pointer += self.point_list[i]
+    print(pointer)
+      
+    return pointer
+
+  def align(self,seq1,seq2):
+    n = len(seq1) + 1
+    m = len(seq2) + 1
+    score_matrix = np.zeros((n,m), dtype=int) #Stores ints
+    pointer_matrix = np.chararray((n,m), itemsize=3) #Stores strings
+    
+    for i in range(0,n):
+      score_matrix[i][0] = i*self.gap
+      pointer_matrix[i][0] = 'V'
+    for i in range(0,m):
+      score_matrix[0][i] = i*self.gap
+      pointer_matrix[0][i] = 'H'
+
+    bar = progressbar.ProgressBar(max_value=n*m)
+    for i in range(1,n):
+      for j in range(1,m):
+        diagonal = score_matrix[i-1][j-1] + self.check_match(seq1[i-1], seq2[j-1])
+        horisontal = score_matrix[i-1][j] + self.gap
+        vertical = score_matrix[i][j-1] + self.gap
+        score_matrix[i][j] = max(diagonal, horisontal, vertical)
+        pointer_matrix[i][j] = self.check_pointer([diagonal, horisontal, vertical])
+        bar.update(i*j)
+        
+    bar.finish()
+    
+    print(score_matrix)
+    print(pointer_matrix)
+    
+    
+if __name__=='__main__':
+  print('Test')
+  """
+  p1 = Process(target=func1)
+  p1.start()
+  p2 = Process(target=func2)
+  p2.start()
+  """

@@ -1,0 +1,47 @@
+import numpy as np
+from multiprocessing import Process
+
+class Needleman_Wunsch():
+  
+  def __init__(self, match=1, mismatch=-1, gap=-1):
+    self.match = match
+    self.mismatch = mismatch
+    self.gap = gap
+
+  def check_match(n1,n2):
+    if n1==n2:
+      return self.match
+    else:
+      return self.mismatch
+
+  def align(seq1,seq2):
+  
+    n = len(seq1) + 1
+    m = len(seq2) + 1
+    aligned_matrix = np.zeros((n,m))
+    pointer_matrix = np.zeros((n,m))
+    
+    for i in range(0,n):
+      aligned_matrix[i][0] = -i
+    for i in range(0,m):
+      aligned_matrix[0][i] = -i
+    
+    for i in range(1,n):
+      for j in range(1,m):
+        diagonal = aligned_matrix[i-1][j-1] + check_match(seq1[i], seq2[j])
+        
+        
+        
+        
+        aligned_matrix[i][j]
+    
+    
+    
+if __name__=='__main__':
+  print('Test')
+  """
+  p1 = Process(target=func1)
+  p1.start()
+  p2 = Process(target=func2)
+  p2.start()
+  """

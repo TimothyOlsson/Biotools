@@ -1,10 +1,8 @@
 import numpy as np
 import time
-import progressbar
 import sys
 import multiprocessing
 
-import pdb
 
 class Needleman_Wunsch():
   
@@ -75,18 +73,20 @@ class Needleman_Wunsch():
 
       done = False
       while done!=True:
+        print(aligned_seq1)
+        print(aligned_seq2)
         if pointer_matrix[x][y] == 'D':
           aligned_seq1.append(seq1[x-1])
           aligned_seq2.append(seq2[y-1])
           x -= 1
           y -= 1
         elif pointer_matrix[x][y] == 'H':
-          aligned_seq1.append(seq1[x-1])
-          aligned_seq2.append('-')
-          y -= 1
-        elif pointer_matrix[x][y] == 'V':
           aligned_seq1.append('-')
           aligned_seq2.append(seq2[y-1])
+          y -= 1
+        elif pointer_matrix[x][y] == 'V':
+          aligned_seq1.append(seq1[x-1])
+          aligned_seq2.append('-')
           x -= 1
         elif pointer_matrix[x][y] == 'E':
           done=True
@@ -110,7 +110,6 @@ class Needleman_Wunsch():
       
     pointer_matrix[0][0] = 'E'
 
-    bar = progressbar.ProgressBar(max_value=n*m)
     for i in range(1,n):
       for j in range(1,m):
         diagonal = score_matrix[i-1][j-1] + self.check_match(seq1[i-1], seq2[j-1])
@@ -118,9 +117,6 @@ class Needleman_Wunsch():
         vertical = score_matrix[i][j-1] + self.gap
         score_matrix[i][j] = max(diagonal, horisontal, vertical)
         pointer_matrix[i][j] = self.check_pointer([diagonal, horisontal, vertical])
-        bar.update(j + (i-1)*n)
-        
-    bar.finish()
     
     return score_matrix,pointer_matrix
 

@@ -73,8 +73,6 @@ class Needleman_Wunsch():
 
       done = False
       while done!=True:
-        print(aligned_seq1)
-        print(aligned_seq2)
         if pointer_matrix[x][y] == 'D':
           aligned_seq1.append(seq1[x-1])
           aligned_seq2.append(seq2[y-1])

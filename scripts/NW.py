@@ -52,7 +52,7 @@ class Needleman_Wunsch():
   def alignment_indication(self, seq1, seq2):
     alignment_indication = []
     for i in range(0,len(seq1)):
-      if seq1[i] == '-' or seq2[i] == '-':
+      if (seq1[i] == '-') or (seq2[i] == '-'):
         alignment_indication.append(' ')
       elif seq1[i] != seq2[i]:
         alignment_indication.append(':')
@@ -79,13 +79,13 @@ class Needleman_Wunsch():
           x -= 1
           y -= 1
         elif pointer_matrix[x][y] == 'H':
-          aligned_seq1.append('-')
-          aligned_seq2.append(seq2[y-1])
-          y -= 1
-        elif pointer_matrix[x][y] == 'V':
           aligned_seq1.append(seq1[x-1])
           aligned_seq2.append('-')
           x -= 1
+        elif pointer_matrix[x][y] == 'V':
+          aligned_seq1.append('-')
+          aligned_seq2.append(seq2[y-1])
+          y -= 1
         elif pointer_matrix[x][y] == 'E':
           done=True
         else:

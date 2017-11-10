@@ -4,6 +4,8 @@ import progressbar
 import sys
 import multiprocessing
 
+import pdb
+
 class Needleman_Wunsch():
   
   def __init__(self, match=1, mismatch=-1, gap=-1):
@@ -67,10 +69,10 @@ class Needleman_Wunsch():
       #Lists are faster than strings
       aligned_seq1 = []
       aligned_seq2 = []
-      n = len(seq1) + 1
-      m = len(seq2) + 1
-      x,y = [n - 1,m - 1]
-      
+      n = len(seq1)
+      m = len(seq2)
+      x,y = [n,m]
+
       done = False
       while done!=True:
         if pointer_matrix[x][y] == 'D':
@@ -81,11 +83,11 @@ class Needleman_Wunsch():
         elif pointer_matrix[x][y] == 'H':
           aligned_seq1.append(seq1[x-1])
           aligned_seq2.append('-')
-          x -= 1
+          y -= 1
         elif pointer_matrix[x][y] == 'V':
           aligned_seq1.append('-')
           aligned_seq2.append(seq2[y-1])
-          y -= 1
+          x -= 1
         elif pointer_matrix[x][y] == 'E':
           done=True
         else:

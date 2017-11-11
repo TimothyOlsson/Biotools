@@ -10,7 +10,7 @@ class Needleman_Wunsch():
     self.match = match
     self.mismatch = mismatch
     self.gap = gap
-    self.point_list = ['D','H','V']
+    self.point_list = ['D','V','H']
 
   def check_match(self,n1,n2):
     if n1==n2:
@@ -79,13 +79,13 @@ class Needleman_Wunsch():
           x -= 1
           y -= 1
         elif pointer_matrix[x][y] == 'H':
-          aligned_seq1.append(seq1[x-1])
-          aligned_seq2.append('-')
-          x -= 1
-        elif pointer_matrix[x][y] == 'V':
           aligned_seq1.append('-')
           aligned_seq2.append(seq2[y-1])
           y -= 1
+        elif pointer_matrix[x][y] == 'V':
+          aligned_seq1.append(seq1[x-1])
+          aligned_seq2.append('-')
+          x -= 1
         elif pointer_matrix[x][y] == 'E':
           done=True
         else:
@@ -94,6 +94,20 @@ class Needleman_Wunsch():
       return ''.join(reversed(aligned_seq1)), ''.join(reversed(aligned_seq2))
 
   def calc_matrix(self,seq1,seq2):
+    """
+    a[0][1] = a[x1][y2]
+      y1 y2 y3
+    x1
+    x2
+    x3
+
+      s  e  q  2
+    s
+    e
+    q
+    1
+    """
+
     n = len(seq1) + 1
     m = len(seq2) + 1
     score_matrix = np.zeros((n,m), dtype=int) #Stores ints
@@ -111,14 +125,14 @@ class Needleman_Wunsch():
     for i in range(1,n):
       for j in range(1,m):
         diagonal = score_matrix[i-1][j-1] + self.check_match(seq1[i-1], seq2[j-1])
-        horisontal = score_matrix[i-1][j] + self.gap
-        vertical = score_matrix[i][j-1] + self.gap
-        score_matrix[i][j] = max(diagonal, horisontal, vertical)
-        pointer_matrix[i][j] = self.check_pointer([diagonal, horisontal, vertical])
+        vertical = score_matrix[i-1][j] + self.gap
+        horisontal = score_matrix[i][j-1] + self.gap
+        score_matrix[i][j] = max(diagonal, vertical, horisontal)
+        pointer_matrix[i][j] = self.check_pointer([diagonal, vertical, horisontal])
     
     return score_matrix,pointer_matrix
 
-  def run(self, seq1, seq2):
+  def run(self, seq1, seq2, queue=multiprocessing.Queue()):
 
     score_matrix, pointer_matrix = self.calc_matrix(seq1,seq2)
     aligned_seq1, aligned_seq2 = self.traceback(seq1,seq2,score_matrix,pointer_matrix)
@@ -139,6 +153,8 @@ class Needleman_Wunsch():
     for i in list_of_all_things:
       print(i)
 
+    queue.put(str(list_of_all_things))
+    
     return list_of_all_things
     
     

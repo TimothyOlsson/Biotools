@@ -1,4 +1,3 @@
-
 import os #for basic folder handling
 from flask import session #Sessions
 from flask import request, redirect, url_for #Redirects
@@ -171,14 +170,11 @@ def Pairwise_get_fasta():
         processed_pairwise = fasta_seq.upper()
 
     from scripts.NW import Needleman_Wunsch
-    parent_pipe, child_pipe = multiprocessing.Pipe()
+    queue = multiprocessing.Queue()
     process_pairwise = multiprocessing.Process(target=Needleman_Wunsch().run,
-                                               args=['AAA', 'AAA', child_pipe])
+                                               args=['AAA', 'AAA', queue])
     process_pairwise.start()
-
-    def wait_for_process():
-        pass
-
+    session['processed_pairwise'] = queue.get()
     return redirect(url_for(page))
 
 #Pairwise, send the fasta
@@ -199,12 +195,10 @@ def Pairwise_send_fasta():
 
         bIO = io.BytesIO()
         try:
-            bIO.write(session['processed_MSA'].encode('utf-8'))
+            bIO.write(session['processed_pairwise'].encode('utf-8'))
         except AttributeError:
-            bIO.write(session['processed_MSA'])
-
+            bIO.write(session['processed_pairwise'])
         bIO.seek(0)
-
         if session.get('filename') != None:
             filename = 'aligned_' + session['filename']
         else:
@@ -214,7 +208,7 @@ def Pairwise_send_fasta():
                         attachment_filename=filename,
                         as_attachment=True)
     elif request.form.get('view') != None:
-        return session['processed_MSA']
+        return session['processed_pairwise']
 
 #Random DNA page
 @app.route('/Random_DNA')

@@ -139,8 +139,8 @@ class Needleman_Wunsch():
     score, match_percentage, amount_of_matches, amount_of_mismatches, amount_of_gaps = self.calc_score(aligned_seq1, aligned_seq2)
     alignment_indication = self.alignment_indication(aligned_seq1, aligned_seq2)
 
-    list_of_all_things = [score_matrix,
-                          pointer_matrix,
+    list_of_all_things = [#[x.tolist() for x in score_matrix], #Not needed
+                          #[x.tolist() for x in pointer_matrix], #Not needed
                           aligned_seq1,
                           alignment_indication,
                           aligned_seq2,
@@ -150,10 +150,21 @@ class Needleman_Wunsch():
                           amount_of_mismatches,
                           amount_of_gaps]
 
+    dict_of_all_things = {#'score_matrix':#[x.tolist() for x in score_matrix], #Not needed
+                          #'pointer_': [x.tolist() for x in pointer_matrix], #Not needed
+                          'aligned_seq1': aligned_seq1,
+                          'alignment_indication': alignment_indication,
+                          'aligned_seq2': aligned_seq2,
+                          'score': score,
+                          'match_percentage': match_percentage,
+                          'amount_of_matches': amount_of_matches,
+                          'amount_of_mismatches': amount_of_mismatches,
+                          'amount_of_gaps': amount_of_gaps}
+
+    queue.put(dict_of_all_things)
+    
     for i in list_of_all_things:
       print(i)
-
-    queue.put(str(list_of_all_things))
     
     return list_of_all_things
     

@@ -1,18 +1,18 @@
-import os # for basic folder handling
-from flask import session # Sessions
-from flask import request, redirect, url_for # Redirects
-from flask import send_from_directory, send_file # Downloading and uploading
-from flask import flash # Alerts and flashing
-from flask import Flask, render_template # Basic rendering
+import os  # for basic folder handling
+from flask import session  # Sessions
+from flask import request, redirect, url_for  # Redirects
+from flask import send_from_directory, send_file  # Downloading and uploading
+from werkzeug.utils import secure_filename  # Uploading
+from flask import flash  # Alerts and flashing
+from flask import Flask, render_template  # Basic rendering
 from flask import Response # Stream
 from flask import jsonify
 import json
 import threading
 import subprocess
 import time
-from werkzeug.utils import secure_filename # Uploading
-import io # String sending
-import logging # Debugging
+import io  # String sending
+import logging  # Debugging
 import sys
 import multiprocessing
 import random
@@ -138,12 +138,12 @@ def MSA_send_fasta():
 def Pairwise():
     page = 'Pairwise'; folder = 'Alignment'
     finished = False
-    if session.get('pairwise_key') == None:
-        session['pairwise_key'] = key_generator()
-    elif session.get('pairwise_done') != None:
+    if session.get(page+'_key') == None:
+        session[page+'_key'] = key_generator()
+    elif session.get(page+'_done') != None:
         finished = True
     else:
-        print('Error for user' + session['pairwise_key'])
+        print('Error for user' + session[page+'_key'])
     return render_template('/'+folder+'/'+page+'.html',
                            finished=finished,
                            page=page)
@@ -174,17 +174,16 @@ def Pairwise_get_fasta():
     from scripts.Alignment.NW import Needleman_Wunsch
     queue = multiprocessing.Queue()
     align_process = multiprocessing.Process(target=Needleman_Wunsch().run,
-                                               args=[sequences[0], sequences[1], queue])
+                                            args=[sequences[0], sequences[1], queue])
     align_process.start()
     data_dict = queue.get()
-    data_dict['KEY'] = session['pairwise_key'] # Add key for query
-
+    data_dict['KEY'] = session[page+'_key']  # Add key for query
     from scripts.sql_handler import sql_handler
-    print(data_dict) # REMOVE
+    sql_handler().db_clear(page, session[page+'_key'])  # Clear previous entries
     database_process = multiprocessing.Process(target=sql_handler().db_add,
-                                               args=['pairwise', data_dict])
+                                               args=[page, data_dict])
     database_process.start()
-    session['pairwise_done'] = 'Done'
+    session[page+'_done'] = 'Done'
     return redirect(url_for(page))
 
 #Pairwise GET
@@ -195,17 +194,16 @@ def Pairwise_send_fasta():
     Problem fixed. If you use request.form['view'] first while clicking on download,
     the app will crash since it tries to find it in the if statement
     """
-
     if request.form.get('reset') != None:
         session.clear()
         return redirect(url_for(page))
-
     elif request.form.get('download') != None:
         bIO = io.BytesIO()
-        try:
-            bIO.write(session['processed_pairwise'].encode('utf-8'))
-        except AttributeError:
-            bIO.write(session['processed_pairwise'])
+        from scripts.sql_handler import sql_handler
+        from scripts.fix_list import fix_list
+        bIO.write(fix_list(sql_handler().db_find(page,
+                           session[page+'_key']))
+                           .encode())
         bIO.seek(0)
         if session.get('filename') != None:
             filename = 'aligned_' + session['filename']
@@ -214,11 +212,13 @@ def Pairwise_send_fasta():
         return send_file(bIO,
                         attachment_filename=filename,
                         as_attachment=True)
-
     elif request.form.get('view') != None:
         from scripts.sql_handler import sql_handler
-        return jsonify(sql_handler().db_find('pairwise',
-                                            session['pairwise_key']))
+        from scripts.fix_list import fix_list
+        # OBS: <tt> tag is not supported in HTML5
+        return '<tt>'+fix_list(sql_handler().db_find(page,
+                        session[page+'_key']),
+                        html=True)
 
 #Random DNA page
 @app.route('/Random_DNA')

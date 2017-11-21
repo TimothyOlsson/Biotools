@@ -42,3 +42,11 @@ class sql_handler():
         conn.close()
         del db_result[-1] # Remove key
         return db_result
+
+    def db_clear(self, table_name, key):
+        conn = sqlite3.connect('database.db')
+        c = conn.cursor()
+        c.execute('DELETE FROM {} WHERE KEY="{}"'.format(table_name, key))
+        conn.commit()
+        conn.close()
+        return 0

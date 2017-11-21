@@ -161,6 +161,7 @@ class Needleman_Wunsch():
                           'amount_of_mismatches': amount_of_mismatches,
                           'amount_of_gaps': amount_of_gaps}
 
+    time.sleep(5)
     queue.put(dict_of_all_things)
     
     for i in list_of_all_things:

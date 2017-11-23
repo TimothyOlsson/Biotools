@@ -24,7 +24,7 @@ import binascii
 # Sets the website as "app"
 app = Flask(__name__)
 
-# DEFINITIONS
+#region FUNCTIONS
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -32,12 +32,14 @@ def allowed_file(filename):
 def key_generator():
     """Returns a random string"""
     return binascii.hexlify(os.urandom(12)).decode()
+#endregion
 
-# CONFIGS
+#region CONFIGS
 UPLOAD_FOLDER = './uploaded_files'
 ALLOWED_EXTENSIONS = set(['txt', 'fasta', 'fa', 'sthlm'])
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['JSON_AS_ASCII'] = False
+#endregion
 
 # Root page
 @app.route('/')
@@ -68,9 +70,9 @@ class PairwiseClass(View):
         if request.path == '/Pairwise':
             return self.Pairwise()
         elif request.path == '/Pairwise/post':
-            return self.post()
+            return self.Pairwise_post()
         elif request.path == '/Pairwise/get':
-            return self.get()
+            return self.Pairwise_get()
         else:
             abort(404)
 
@@ -78,13 +80,13 @@ class PairwiseClass(View):
         finished = False
         if session.get(self.page+'_key') == None:
             session[self.page+'_key'] = key_generator()
-        elif session.get(self.page+'_done') != None:
+        elif session.get(self.page+'_processing') != None:
             finished = True
         return render_template('/'+self.folder+'/'+self.page+'.html',
                                finished=finished,
                                page=self.page)
 
-    def post(self):
+    def Pairwise_post(self):
         if request.form['fasta_seq'] == '':
             flash('No file or input detected')
             return redirect(url_for(self.page))
@@ -109,15 +111,20 @@ class PairwiseClass(View):
         align_process = multiprocessing.Process(target=Needleman_Wunsch().run,
                                                 args=[sequences[0], sequences[1], queue])
         align_process.start()
-        data_dict = queue.get() # ADD ASYNCHRONOUS WAIT
-        data_dict['KEY'] = session[self.page + '_key']  # Add key for query
         from scripts.sql_handler import sql_handler
+        def wait_process(queue, key):
+            with app.test_request_context():
+                data_dict = queue.get()  # ADD ASYNCHRONOUS WAIT
+                data_dict['KEY'] = key # Add key for query
+                sql_handler().db_add(self.page, data_dict)
+
+        wait_thread = threading.Thread(target=wait_process, args=(queue, session[self.page + '_key'] ))
+        wait_thread.start()
         sql_handler().db_clear(self.page, session[self.page + '_key'])  # Clear previous entries
-        sql_handler().db_add(self.page, data_dict)
-        session[self.page + '_done'] = 'Done'
+        session[self.page+'_processing'] = 'Working'
         return redirect(url_for(self.page))
 
-    def get(self):
+    def Pairwise_get(self):
         """
         Problem fixed. If you use request.form['view'] first while clicking on download,
         the app will crash since it tries to find it in the if statement
@@ -125,7 +132,13 @@ class PairwiseClass(View):
         if request.form.get('reset') != None:
             session.clear()
             return redirect(url_for(self.page))
-        elif request.form.get('download') != None:
+        if (request.form.get('download') !=None or
+            request.form.get('view') != None):
+            from scripts.sql_handler import sql_handler
+            if sql_handler().db_find(self.page, session[self.page + '_key']) == None:
+                return render_template('loading.html')
+
+        if request.form.get('download') != None:
             bIO = io.BytesIO()
             from scripts.sql_handler import sql_handler
             from scripts.fix_list import fix_list
@@ -143,14 +156,15 @@ class PairwiseClass(View):
         elif request.form.get('view') != None:
             from scripts.sql_handler import sql_handler
             from scripts.fix_list import fix_list
-            # OBS: <tt> tag is not supported in HTML5
-            return '<tt>'+fix_list(sql_handler().db_find(self.page,
+            # <code> makes text monospace, <pre> makes text not ignore multiple spaces
+            return '<code>'+'<pre>'+fix_list(sql_handler().db_find(self.page,
                             session[self.page+'_key']),
                             html=True)
+#region Pairwise url_rule
 app.add_url_rule('/Pairwise', view_func=PairwiseClass.as_view('Pairwise'))
 app.add_url_rule('/Pairwise/post', view_func=PairwiseClass.as_view('Pairwise_post'))
 app.add_url_rule('/Pairwise/get', view_func=PairwiseClass.as_view('Pairwise_get'))
-
+#endregion
 
 # MSA ROOT
 @app.route('/MSA')
@@ -264,6 +278,7 @@ https://stackoverflow.com/questions/8179558/how-to-pass-classs-self-through-a-fl
 http://flask.pocoo.org/docs/0.12/blueprints/
 https://www.reddit.com/r/flask/comments/3xk4dq/class_based_views_or_function_based_views/
 https://stackoverflow.com/questions/27192932/define-manually-routes-using-flask
+https://stackoverflow.com/questions/41051605/refreshing-users-webpage-with-python-flask
 """
 
 

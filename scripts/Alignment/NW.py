@@ -132,7 +132,7 @@ class Needleman_Wunsch():
     
     return score_matrix,pointer_matrix
 
-  def run(self, seq1, seq2, queue=multiprocessing.Queue()):
+  def run(self, seq1, seq2, queue=multiprocessing.Queue(), verbose=False):
 
     score_matrix, pointer_matrix = self.calc_matrix(seq1,seq2)
     aligned_seq1, aligned_seq2 = self.traceback(seq1,seq2,score_matrix,pointer_matrix)
@@ -162,9 +162,10 @@ class Needleman_Wunsch():
                           'amount_of_gaps': 'Gaps: ' + str(amount_of_gaps)}
 
     queue.put(dict_of_all_things)
-    
-    for i in list_of_all_things:
-      print(i)
+
+    if verbose:
+      for i in list_of_all_things:
+        print(i)
     
     return list_of_all_things
     

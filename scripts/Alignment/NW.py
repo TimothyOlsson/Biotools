@@ -155,13 +155,12 @@ class Needleman_Wunsch():
                           'aligned_seq1': aligned_seq1,
                           'alignment_indication': alignment_indication,
                           'aligned_seq2': aligned_seq2,
-                          'score': score,
-                          'match_percentage': match_percentage,
-                          'amount_of_matches': amount_of_matches,
-                          'amount_of_mismatches': amount_of_mismatches,
-                          'amount_of_gaps': amount_of_gaps}
+                          'score': 'Score: ' + str(score),
+                          'match_percentage': 'Match percentage: ' + '{0:.5f}'.format(match_percentage),
+                          'amount_of_matches': 'Matches: ' + str(amount_of_matches),
+                          'amount_of_mismatches': 'Mismatches: ' +str(amount_of_mismatches),
+                          'amount_of_gaps': 'Gaps: ' + str(amount_of_gaps)}
 
-    time.sleep(5)
     queue.put(dict_of_all_things)
     
     for i in list_of_all_things:

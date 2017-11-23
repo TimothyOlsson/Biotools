@@ -15,10 +15,13 @@ class sql_handler():
 
     def db_to_list(self, db_result):
         """Converts tuple from SQL query into a list"""
+        if db_result == None:
+            return None
         db_result = list(db_result)
         for i,j in enumerate(db_result):
             if bool(re.search(self.delimiter, str(db_result[i]))):
                 db_result[i] = j.split(self.delimiter)
+        del db_result[-1] # Remove key
         return db_result
 
     def db_add(self, table_name, value_dict):
@@ -40,7 +43,6 @@ class sql_handler():
         c.execute('SELECT * FROM {} WHERE KEY="{}"'.format(table_name, key))
         db_result = self.db_to_list(c.fetchone())
         conn.close()
-        del db_result[-1] # Remove key
         return db_result
 
     def db_clear(self, table_name, key):

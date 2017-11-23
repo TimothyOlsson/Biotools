@@ -7,6 +7,7 @@ from flask import flash  # Alerts and flashing
 from flask import Flask, render_template  # Basic rendering
 from flask.views import View
 from flask.views import MethodView
+from flask import abort
 from flask import jsonify
 from flask import Response # Stream
 import json
@@ -45,13 +46,18 @@ app.config['JSON_AS_ASCII'] = False
 @app.route('/')
 def index():
     author = "Biotools"
-    options_dict = {'Alignment': ['MSA', 'Pairwise', 'cats'],
+    """
+    New menu = key in dict
+    New option = value in dict
+    Automatically generated in dropdown menu in index + button that
+    sends to correct sub page.
+    """
+    options_dict = {'Alignment': ['Pairwise', 'MSA', 'cats'],
                    'DNA sequencing': ['Random_DNA','Translate_DNA']}
 
     return render_template('index.html',
                            author=author,
-                           alignment_list=options_dict['Alignment'],
-                           dnaseq_list=options_dict['DNA sequencing'])
+                           options_dict=options_dict)
 
 # About page
 @app.route('/about')
@@ -59,11 +65,12 @@ def about():
     return render_template('about.html')
 
 class PairwiseClass(View):
-    page = 'Pairwise'
+    page = 'Pairwise'  # Page name
     folder = 'Alignment'
     methods = ['POST','GET']
 
     def __init__(self):
+        # Add non-static values here
         pass
 
     def dispatch_request(self):
@@ -77,13 +84,13 @@ class PairwiseClass(View):
             abort(404)
 
     def Pairwise(self):
-        finished = False
+        submitted = False
         if session.get(self.page+'_key') == None:
             session[self.page+'_key'] = key_generator()
         elif session.get(self.page+'_processing') != None:
-            finished = True
+            submitted = True
         return render_template('/'+self.folder+'/'+self.page+'.html',
-                               finished=finished,
+                               submitted=submitted,
                                page=self.page)
 
     def Pairwise_post(self):

@@ -74,47 +74,30 @@
 <!--Fucking finally....-->
 
 <div class="navbar">
-  <div class="dropdown">
-    <button class="dropbtn">Alignment 
-      <i class="fa fa-caret-down"></i>
-    </button>
-    <div class="dropdown-content">
-	{% for option in alignment_list %}
-      <a href="/{{ option }}">{{ option|replace("_"," ")  }}</a>
+{% for option in options_dict %}
+	<div class="dropdown">
+	<button class="dropbtn">{{ option }}
+	  <i class="fa fa-caret-down"></i>
+	</button>
+	<div class="dropdown-content">
+	{% for i in options_dict[option] %}
+	  <a href="/{{ i }}">{{ i|replace("_"," ")  }}</a>
 	{% endfor %}
-    </div>
-  </div>
-  
-  
-  
-  
-  
-  <div class="dropdown">
-    <button class="dropbtn">DNA sequencing
-      <i class="fa fa-caret-down"></i>
-    </button>
-    <div class="dropdown-content">
-	{% for option in dnaseq_list %}
-      <a href="/{{ option }}">{{ option|replace("_"," ")  }}</a>
-	{% endfor %}
-    </div>
-  </div> 
-  
-  
-  
-  
-  
-  
-  
+	</div>
+	</div>
+{% endfor %}
   <a href="/about">About</a>
   <a href="#news">News</a>
 </div>
 
 
-
-
-<h3>Test</h3>
+<h3>This is blablabla</h3>
 <p>More tests</p>
+<p>Awesome graph:<p/>
+
+<img src="/static/funny.gif">
+
+
 
 </body>
 

@@ -25,6 +25,9 @@ import binascii
 # Sets the website as "app"
 app = Flask(__name__)
 
+# CHANGE BEFORE DEPLOYIMENT!
+app.secret_key = r'\x0e\xed]\xd8\x9ae\xf2\x90\xd6\xac\x03\xf4\xddM\xcc\xbb\x1f\xd2a,Z\x0eeW'
+
 #region FUNCTIONS
 def allowed_file(filename):
     return '.' in filename and \
@@ -74,6 +77,7 @@ class PairwiseClass(View):
         pass
 
     def dispatch_request(self):
+        """Dispatches to correct function, property of url_rule"""
         if request.path == '/Pairwise':
             return self.Pairwise()
         elif request.path == '/Pairwise/post':
@@ -121,8 +125,8 @@ class PairwiseClass(View):
         from scripts.sql_handler import sql_handler
         def wait_process(queue, key):
             with app.test_request_context():
-                data_dict = queue.get()  # ADD ASYNCHRONOUS WAIT
-                data_dict['KEY'] = key # Add key for query
+                data_dict = queue.get()  # ASYNCHRONOUS fixed :)
+                data_dict['KEY'] = key  # Add key for query
                 sql_handler().db_add(self.page, data_dict)
 
         wait_thread = threading.Thread(target=wait_process, args=(queue, session[self.page + '_key'] ))
@@ -139,147 +143,60 @@ class PairwiseClass(View):
         if request.form.get('reset') != None:
             session.clear()
             return redirect(url_for(self.page))
-        if (request.form.get('download') !=None or
-            request.form.get('view') != None):
+        if (request.form.get('download') !=None or request.form.get('view') != None):
+            """Check first if calculation is done before doing anything, SQL query fast"""
             from scripts.sql_handler import sql_handler
             if sql_handler().db_find(self.page, session[self.page + '_key']) == None:
                 return render_template('loading.html')
-
         if request.form.get('download') != None:
             bIO = io.BytesIO()
             from scripts.sql_handler import sql_handler
             from scripts.fix_list import fix_list
-            bIO.write(fix_list(sql_handler().db_find(self.page,
-                               session[self.page+'_key']))
-                               .encode())
+            bIO.write(fix_list(sql_handler().db_find(self.page,session[self.page+'_key'])).encode())
             bIO.seek(0)
             if session.get('filename') != None:
                 filename = 'aligned_' + session['filename']
             else:
                 filename = 'aligned_sequences.fasta'
-            return send_file(bIO,
-                            attachment_filename=filename,
-                            as_attachment=True)
+            return send_file(bIO, attachment_filename=filename, as_attachment=True)
         elif request.form.get('view') != None:
             from scripts.sql_handler import sql_handler
             from scripts.fix_list import fix_list
-            # <code> makes text monospace, <pre> makes text not ignore multiple spaces
+            """<code> makes text monospace, <pre> makes text not ignore multiple spaces
+            fix_list fixed the query for output to browser"""
             return '<code>'+'<pre>'+fix_list(sql_handler().db_find(self.page,
-                            session[self.page+'_key']),
-                            html=True)
+                                                                   session[self.page+'_key']),
+                                                                   html=True)
 #region Pairwise url_rule
 app.add_url_rule('/Pairwise', view_func=PairwiseClass.as_view('Pairwise'))
 app.add_url_rule('/Pairwise/post', view_func=PairwiseClass.as_view('Pairwise_post'))
 app.add_url_rule('/Pairwise/get', view_func=PairwiseClass.as_view('Pairwise_get'))
 #endregion
 
-# MSA ROOT
 @app.route('/MSA')
 def MSA():
-    page = 'MSA';
-    folder = 'Alignment'
-    if session.get('processed_MSA') != None:
-        flag = True
-    else:
-        flag = False
-    return render_template('/' + folder + '/' + page + '.html',
-                           processed=flag, page=page)
+    return 'WIP: MSA'
 
-# MSA POST
-@app.route('/MSA/post', methods=['POST'])
-def MSA_get_fasta():
-    page = 'MSA';
-    folder = 'Alignment'
-    if request.form['fasta_seq'] == '':
-        flash('No file or input detected')
-        return redirect(url_for(page))
-
-    # Prioritize files. Check if file exist
-    elif ('file' in request.files) and (request.files['file'].filename != ''):
-
-        file = request.files['file']  # Process file
-        session['filename'] = file.filename  # add filename to session
-
-        # Check if the file extension is allowed
-        if not allowed_file(file.filename):
-            flash('File type not supported')
-            return redirect(url_for(page))
-
-        file_contents = file.read()  # If everything is ok, read
-        # Remove all comments etc
-        processed_MSA = file_contents
-
-    # Text field
-    else:
-        fasta_seq = request.form['fasta_seq']
-        processed_MSA = fasta_seq.upper()
-
-    session['processed_MSA'] = processed_MSA
-
-    return redirect(url_for(page))
-
-# MSA GET
-@app.route('/MSA/get', methods=['POST'])
-def MSA_send_fasta():
-    page = 'MSA'
-    folder = 'Alignment'
-    """
-    Problem fixed. If you use request.form['view'] first while clicking on download,
-    the app will crash since it tries to find it in the if statement
-    """
-
-    if request.form.get('reset') != None:
-        session.clear()
-        return redirect(url_for(page))
-
-    elif request.form.get('download') != None:
-
-        bIO = io.BytesIO()
-        try:
-            bIO.write(session['processed_MSA'].encode('utf-8'))
-        except AttributeError:
-            bIO.write(session['processed_MSA'])
-
-        bIO.seek(0)
-
-        if session.get('filename') != None:
-            filename = 'aligned_' + session['filename']
-        else:
-            filename = 'aligned_sequences.fasta'
-
-        return send_file(bIO,
-                         attachment_filename=filename,
-                         as_attachment=True)
-    elif request.form.get('view') != None:
-        return session['processed_MSA']
-
-#Random DNA page
 @app.route('/Random_DNA')
 def Random_DNA():
-    return 'Random'
+    return 'WIP: Random DNA'
 
-#DNA translation page
 @app.route('/Translate_DNA')
 def Translate_DNA():
-    return 'Translate'
+    return 'WIP: Translate DNA'
 
-#Cat page
 @app.route('/cats', methods = ['GET'])
 def cats():
     return render_template('index_cats.html')
 
-app.secret_key = r'\x0e\xed]\xd8\x9ae\xf2\x90\xd6\xac\x03\xf4\xddM\xcc\xbb\x1f\xd2a,Z\x0eeW'
 
 if __name__ == "__main__":
     app.run(threaded=True, debug=True)
 
-
-
-
-
-
-
+#region DUMP
 """
+Good links:
+
 https://stackoverflow.com/questions/14672753/handling-multiple-requests-in-flask
 https://stackoverflow.com/questions/8179558/how-to-pass-classs-self-through-a-flask-blueprint-route-decorator
 http://flask.pocoo.org/docs/0.12/blueprints/
@@ -289,28 +206,28 @@ https://stackoverflow.com/questions/41051605/refreshing-users-webpage-with-pytho
 """
 
 
-## DUMP
-
-    #return send_file('link.txt', as_attachment=True, mimetype='txt')
 """
-    if request.method == 'POST':
-    # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit a empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        elif not allowed_file(file.filename):
-            flash('File type is not supported')        
-        if file:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('MSA',
-                                    filename=filename))
-    """
+How to upload files to server:
 
+#return send_file('link.txt', as_attachment=True, mimetype='txt')
+if request.method == 'POST':
+# check if the post request has the file part
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    # if user does not select file, browser also
+    # submit a empty part without filename
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    elif not allowed_file(file.filename):
+        flash('File type is not supported')        
+    if file:
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return redirect(url_for('MSA',
+                                filename=filename))
+"""
+#endregion
 

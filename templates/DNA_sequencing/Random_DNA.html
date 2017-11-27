@@ -1,0 +1,26 @@
+<html>
+{% extends '/base.html' %}
+{% block content %}	
+	
+<h2>{{ page }}</h2>
+
+<form method="POST" id=submit_form enctype=multipart/form-data action="{{ page }}/post">
+	Amount of bases: <input type="text" name="text_box" id="text_box" rows="25" cols="80">
+	<input type=submit value="Submit">
+</form>
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul class=flashes>
+  {% for message in messages %}
+	<li class="{{ message }}">{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+  
+ 
+{% endblock %}
+
+  
+</html>

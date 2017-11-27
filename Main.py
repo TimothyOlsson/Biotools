@@ -40,35 +40,35 @@ def key_generator():
 
 #region CONFIGS
 UPLOAD_FOLDER = './uploaded_files'
-ALLOWED_EXTENSIONS = set(['txt', 'fasta', 'fa', 'sthlm'])
+ALLOWED_EXTENSIONS = set(['txt', 'fasta', 'fa', 'sthlm'])  # Can have different for each page
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['JSON_AS_ASCII'] = False
+app.config['JSON_AS_ASCII'] = False  # Allow utf-8
+author = "Biotools"
 #endregion
 
-# Root page
+# ROOT
 @app.route('/')
 def index():
-    author = "Biotools"
     """
     New menu = key in dict
     New option = value in dict
-    Automatically generated in dropdown menu in index + button that
-    sends to correct sub page.
+    Anything in dict is automatically generated into a dropdown menu in root and a button
+    is created that sends to correct sub page.
     """
     options_dict = {'Alignment': ['Pairwise', 'MSA', 'cats'],
                    'DNA sequencing': ['Random_DNA','Translate_DNA']}
-
     return render_template('index.html',
                            author=author,
                            options_dict=options_dict)
 
-# About page
 @app.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('about.html',
+                           author=author)
 
+#region Alignment
 class PairwiseClass(View):
-    page = 'Pairwise'  # Page name
+    page = 'Pairwise'
     folder = 'Alignment'
     methods = ['POST','GET']
 
@@ -78,11 +78,11 @@ class PairwiseClass(View):
 
     def dispatch_request(self):
         """Dispatches to correct function, property of url_rule"""
-        if request.path == '/Pairwise':
+        if request.path == '/'+self.page:
             return self.Pairwise()
-        elif request.path == '/Pairwise/post':
+        elif request.path == '/'+self.page+'/post':
             return self.Pairwise_post()
-        elif request.path == '/Pairwise/get':
+        elif request.path == '/'+self.page+'/get':
             return self.Pairwise_get()
         else:
             abort(404)
@@ -98,7 +98,7 @@ class PairwiseClass(View):
                                page=self.page)
 
     def Pairwise_post(self):
-        if request.form['fasta_seq'] == '':
+        if request.form['text_box'] == '':
             flash('No file or input detected')
             return redirect(url_for(self.page))
         elif ('file' in request.files) and (request.files['file'].filename != ''):
@@ -111,7 +111,7 @@ class PairwiseClass(View):
             from scripts.read_fasta import read_fasta
             names, sequences = read_fasta(file_contents)
         else:
-            fasta_seq = request.form['fasta_seq']
+            fasta_seq = request.form['text_box']
             from scripts.read_fasta import read_fasta
             names, sequences = read_fasta(fasta_seq)
         if len(sequences) < 2:
@@ -141,7 +141,7 @@ class PairwiseClass(View):
         the app will crash since it tries to find it in the if statement
         """
         if request.form.get('reset') != None:
-            session.clear()
+            session.clear()  # CHANGE SO IT ONLY DELETES CORRECT SESSIONS
             return redirect(url_for(self.page))
         if (request.form.get('download') !=None or request.form.get('view') != None):
             """Check first if calculation is done before doing anything, SQL query fast"""
@@ -177,18 +177,55 @@ app.add_url_rule('/Pairwise/get', view_func=PairwiseClass.as_view('Pairwise_get'
 def MSA():
     return 'WIP: MSA'
 
-@app.route('/Random_DNA')
-def Random_DNA():
-    return 'WIP: Random DNA'
+@app.route('/cats', methods = ['GET'])
+def cats():
+    return render_template('index_cats.html')
+#endregion
 
+#region DNA_sequencing
 @app.route('/Translate_DNA')
 def Translate_DNA():
     return 'WIP: Translate DNA'
 
-@app.route('/cats', methods = ['GET'])
-def cats():
-    return render_template('index_cats.html')
+class Random_DNAClass(View):
+    page = 'Random_DNA'
+    folder = 'DNA_sequencing'
+    methods = ['POST','GET']
 
+    def __init__(self):
+        pass
+
+    def dispatch_request(self):
+        """Dispatches to correct function, property of url_rule"""
+        if request.path == '/'+self.page:
+            return self.Random_DNA()
+        elif request.path == '/'+self.page+'/post':
+            return self.Random_DNA_post()
+        else:
+            abort(404)
+
+    def Random_DNA(self):
+        return render_template('/'+self.folder+'/'+self.page+'.html',
+                               page=self.page)
+
+    def Random_DNA_post(self):
+        if request.form['text_box'] == '':
+            flash('No input detected')
+            return redirect(url_for(self.page))
+        else:
+            number = request.form['text_box']
+        if not number.isdigit():
+            flash('Input is not a number')
+            return redirect(url_for(self.page))
+        from scripts.DNA_sequencing.Random_DNA_seq import Random_DNA_seq
+        flash(Random_DNA_seq(int(number)), category='success')
+        return redirect(url_for(self.page))
+
+#region Random_DNA url_rule
+app.add_url_rule('/Random_DNA', view_func=Random_DNAClass.as_view('Random_DNA'))
+app.add_url_rule('/Random_DNA/post', view_func=Random_DNAClass.as_view('Random_DNA_post'))
+#endregion
+#endregion
 
 if __name__ == "__main__":
     app.run(threaded=True, debug=True)

@@ -133,11 +133,18 @@ class Needleman_Wunsch():
     return score_matrix,pointer_matrix
 
   def run(self, seq1, seq2, queue=multiprocessing.Queue(), verbose=False):
-
-    score_matrix, pointer_matrix = self.calc_matrix(seq1,seq2)
-    aligned_seq1, aligned_seq2 = self.traceback(seq1,seq2,score_matrix,pointer_matrix)
-    score, match_percentage, amount_of_matches, amount_of_mismatches, amount_of_gaps = self.calc_score(aligned_seq1, aligned_seq2)
-    alignment_indication = self.alignment_indication(aligned_seq1, aligned_seq2)
+    seq1, seq2 = (seq1.rstrip(),
+                  seq2.rstrip())  # fixed so that \r is not aligned
+    score_matrix, pointer_matrix = self.calc_matrix(seq1,
+                                                    seq2)
+    aligned_seq1, aligned_seq2 = self.traceback(seq1,
+                                                seq2,
+                                                score_matrix,
+                                                pointer_matrix)
+    score, match_percentage, amount_of_matches, amount_of_mismatches, amount_of_gaps = self.calc_score(aligned_seq1,
+                                                                                                       aligned_seq2)
+    alignment_indication = self.alignment_indication(aligned_seq1,
+                                                     aligned_seq2)
 
     list_of_all_things = [#[x.tolist() for x in score_matrix], #Not needed
                           #[x.tolist() for x in pointer_matrix], #Not needed
